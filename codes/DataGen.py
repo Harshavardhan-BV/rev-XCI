@@ -11,13 +11,13 @@ def XC_TS(t,X,a):
     return np.array([dXa,dXi])
 
 t0=0
-tm=1000
+tm=10
 n=2
 K=0.5
-a1=1
-a2=1
-b1=1
-b2=1
+a1=0.5
+a2=0.5
+b1=0.5
+b2=0.5
 X0=[1,0]
 fname='../input/testdata.csv'
 
