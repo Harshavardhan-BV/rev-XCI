@@ -71,12 +71,12 @@ def plot_fit(df,f,a,fname,savefig=True,savedat=True):
     return f_df
 
 #%% Read input data
-fname='iPSC_timeshifted'
-f=XC_DA_DI
+fname='Partial'
+f=XC_DI
 df=pd.read_csv('../input/'+fname+'.csv')
 fname=fname+'-'+f.__name__
 #%% Initial guess given as ones
-a0=np.ones(11)
+a0=np.ones(7)
 #%% Minimize Sum of Square errors to get best fit parameters
 m=fmin(SSE,a0,args=(df,f,))
 print(m)

@@ -130,3 +130,6 @@ dmypy.json
 
 # Raw data 
 input/*_RawData.xlsx
+
+# VSCode configs
+.vscode
