@@ -1,10 +1,17 @@
+#!/usr/bin/env python
 #%%
 import numpy as np
 import pandas as pd
 from scipy.integrate import solve_ivp
 from scipy.optimize import minimize,fmin
 import matplotlib.pyplot as plt
+import argparse
 plt.rcParams["svg.hashsalt"]=''
+# Parse arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('-f', help='Function to use for fit')
+parser.add_argument('-i', help='Input file')
+args = parser.parse_args()
 #%% Defining Differential equations
 # Double cross-inhibition
 def XC_DI(t,X,a):
@@ -42,7 +49,11 @@ def SSE(a,df,f):
     # Get 'fit' equation
     y_f=sol.y.T
     # Get sum of square error
-    return np.sum(np.square(y_a-y_f))
+    if y_f.shape==y_a.shape:
+        return np.sum(np.square(y_a-y_f))
+    # Return nan if solver error
+    else:
+        return np.nan
 #%% Solve and Display 
 def plot_fit(df,f,a,fname,savefig=True,savedat=True):
     t=df['t'].values
@@ -71,15 +82,26 @@ def plot_fit(df,f,a,fname,savefig=True,savedat=True):
     return f_df
 
 #%% Read input data
-fname='Partial'
-f=XC_DI
+fname=args.i
+funcs = {'XC_DI': XC_DI, 'XC_DA_DI': XC_DA_DI, 'XC_DA_DDI': XC_DA_DDI}
+f=funcs[args.f]
+n=1
 df=pd.read_csv('../input/'+fname+'.csv')
 fname=fname+'-'+f.__name__
-#%% Initial guess given as ones
-a0=np.ones(7)
-#%% Minimize Sum of Square errors to get best fit parameters
-m=fmin(SSE,a0,args=(df,f,))
-print(m)
-np.savetxt('../output/'+fname+'-parm.csv',m)
+if f.__name__=='XC_DI':
+    asize=7
+    cname=['n','K1','K2','a1','a2','b1','b2']
+else:
+    asize=11
+    cname=['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2']
+m_arr=np.empty((0,asize))
 #%%
-plot_fit(df,f,m,fname)
+for i in range(n):
+    # Initial guess given as ones
+    a0=np.random.randint(0,100,asize)
+    # Minimize Sum of Square errors to get best fit parameters
+    m=fmin(SSE,a0,args=(df,f,))
+    print(m)
+    m_arr=np.append(m_arr,[m],axis=0)
+m_arr=pd.DataFrame(m_arr,columns=cname)
+m_arr.to_csv('../output/'+fname+'-parm.csv',index=False)
