@@ -6,11 +6,14 @@ from scipy.integrate import solve_ivp
 from scipy.optimize import minimize,fmin
 import matplotlib.pyplot as plt
 import argparse
+from multiprocessing import Pool
 plt.rcParams["svg.hashsalt"]=''
 # Parse arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', help='Function to use for fit')
 parser.add_argument('-i', help='Input file')
+parser.add_argument('-n', help='Number of parameter sets',type=int)
+parser.add_argument('-t', help='Number of process threads',type=int)
 args = parser.parse_args()
 #%% Defining Differential equations
 # Double cross-inhibition
@@ -94,14 +97,18 @@ if f.__name__=='XC_DI':
 else:
     asize=11
     cname=['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2']
-m_arr=np.empty((0,asize))
-#%%
-for i in range(n):
-    # Initial guess given as ones
-    a0=np.random.randint(0,100,asize)
-    # Minimize Sum of Square errors to get best fit parameters
+#%% Initial guess 
+a0s=np.random.randint(0,100,(args.n,asize))
+# %%
+def min_fit(a0):
     m=fmin(SSE,a0,args=(df,f,))
-    print(m)
-    m_arr=np.append(m_arr,[m],axis=0)
+    return m
+# %%
+if __name__ == '__main__':
+    pool = Pool(args.t)
+    m_arr=pool.map(min_fit,a0s) 
+    pool.close()
+    pool.join()
+# %%
 m_arr=pd.DataFrame(m_arr,columns=cname)
 m_arr.to_csv('../output/'+fname+'-parm.csv',index=False)
