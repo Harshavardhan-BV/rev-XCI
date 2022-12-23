@@ -37,6 +37,13 @@ def XC_DA_DDI(t,X,a):
     dXa=a1*np.power(Xa,n)/(np.power(K1,n)+np.power(Xa,n))-b1*np.power(Xi,n)/(np.power(K2,n)+np.power(Xi,n))-c1*Xa
     dXi=a2*np.power(Xi,n)/(np.power(K3,n)+np.power(Xi,n))-b2*np.power(Xa,n)/(np.power(K4,n)+np.power(Xa,n))-c2*Xi
     return np.array([dXa,dXi])
+# Double self-inhibition + cross-inhibition
+def XC_DI_DI(t,X,a):
+    Xa,Xi=X
+    n,K1,K2,K3,K4,a1,a2,b1,b2,c1,c2=a
+    dXa=a1*1/(np.power(K1,n)+np.power(Xa,n))+b1*1/(np.power(K2,n)+np.power(Xi,n))-c1*Xa
+    dXi=a2*1/(np.power(K3,n)+np.power(Xi,n))+b2*1/(np.power(K4,n)+np.power(Xa,n))-c2*Xi
+    return np.array([dXa,dXi])
 #%% Objective function
 def SSE(a,df,f):
     # Timepoints from actual data
@@ -86,22 +93,25 @@ def plot_fit(df,f,a,fname,savefig=True,savedat=True):
 
 #%% Read input data
 fname=args.i
-funcs = {'XC_DI': XC_DI, 'XC_DA_DI': XC_DA_DI, 'XC_DA_DDI': XC_DA_DDI}
+funcs = {'XC_DI': XC_DI, 'XC_DA_DI': XC_DA_DI, 'XC_DA_DDI': XC_DA_DDI, 'XC_DI_DI': XC_DI_DI}
 f=funcs[args.f]
-n=1
 df=pd.read_csv('../input/'+fname+'.csv')
 fname=fname+'-'+f.__name__
 if f.__name__=='XC_DI':
     asize=7
-    cname=['n','K1','K2','a1','a2','b1','b2']
+    cname=np.array([['n','K1','K2','a1','a2','b1','b2']],dtype=str)
 else:
     asize=11
-    cname=['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2']
+    cname=np.array([['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2']],dtype=str)
+filename='../output/'+fname+'-parm.csv'
+np.savetxt(filename,cname,fmt='%s',delimiter=',')
 #%% Initial guess 
 a0s=np.random.randint(0,100,(args.n,asize))
 # %%
 def min_fit(a0):
     m=fmin(SSE,a0,args=(df,f,))
+    with open(filename, 'a') as fil:
+        np.savetxt(fil,[m],delimiter=',')
     return m
 # %%
 if __name__ == '__main__':
@@ -110,5 +120,5 @@ if __name__ == '__main__':
     pool.close()
     pool.join()
 # %%
-m_arr=pd.DataFrame(m_arr,columns=cname)
-m_arr.to_csv('../output/'+fname+'-parm.csv',index=False)
+#m_arr=pd.DataFrame(m_arr,columns=cname)
+#m_arr.to_csv('../output/'+fname+'-parm.csv',index=False)
