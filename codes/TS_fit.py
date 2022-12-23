@@ -18,32 +18,32 @@ args = parser.parse_args()
 #%% Defining Differential equations
 # Double cross-inhibition
 def XC_DI(t,X,a):
-    Xa,Xi=X
-    n,K1,K2,a1,a2,b1,b2=a
-    dXa=a1*1/(np.power(K1,n)+np.power(Xi,n))-b1*Xa
-    dXi=a2*1/(np.power(K2,n)+np.power(Xa,n))-b2*Xi
-    return np.array([dXa,dXi])
+    Xi,Xa=X
+    n,K1,K2,a1,a2,c1,c2=a
+    dXi=a1*1/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
+    dXa=a2*1/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
+    return np.array([dXi,dXa])
 # Double self-activation + cross-inhibition
 def XC_DA_DI(t,X,a):
-    Xa,Xi=X
+    Xi,Xa=X
     n,K1,K2,K3,K4,a1,a2,b1,b2,c1,c2=a
-    dXa=a1*np.power(Xa,n)/(np.power(K1,n)+np.power(Xa,n))+b1*1/(np.power(K2,n)+np.power(Xi,n))-c1*Xa
-    dXi=a2*np.power(Xi,n)/(np.power(K3,n)+np.power(Xi,n))+b2*1/(np.power(K4,n)+np.power(Xa,n))-c2*Xi
-    return np.array([dXa,dXi])
+    dXi=b1*np.power(Xi,n)/(np.power(K3,n)+np.power(Xi,n))+a1*1/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
+    dXa=b2*np.power(Xa,n)/(np.power(K4,n)+np.power(Xa,n))+a2*1/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
+    return np.array([dXi,dXa])
 # Double self-activation + (-ve) cross-inhibition
 def XC_DA_DDI(t,X,a):
     Xa,Xi=X
     n,K1,K2,K3,K4,a1,a2,b1,b2,c1,c2=a
-    dXa=a1*np.power(Xa,n)/(np.power(K1,n)+np.power(Xa,n))-b1*np.power(Xi,n)/(np.power(K2,n)+np.power(Xi,n))-c1*Xa
-    dXi=a2*np.power(Xi,n)/(np.power(K3,n)+np.power(Xi,n))-b2*np.power(Xa,n)/(np.power(K4,n)+np.power(Xa,n))-c2*Xi
-    return np.array([dXa,dXi])
+    dXi=b1*np.power(Xi,n)/(np.power(K3,n)+np.power(Xi,n))-a1*np.power(Xa,n)/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
+    dXa=b2*np.power(Xa,n)/(np.power(K4,n)+np.power(Xa,n))-a2*np.power(Xi,n)/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
+    return np.array([dXi,dXa])
 # Double self-inhibition + cross-inhibition
 def XC_DI_DI(t,X,a):
     Xa,Xi=X
     n,K1,K2,K3,K4,a1,a2,b1,b2,c1,c2=a
-    dXa=a1*1/(np.power(K1,n)+np.power(Xa,n))+b1*1/(np.power(K2,n)+np.power(Xi,n))-c1*Xa
-    dXi=a2*1/(np.power(K3,n)+np.power(Xi,n))+b2*1/(np.power(K4,n)+np.power(Xa,n))-c2*Xi
-    return np.array([dXa,dXi])
+    dXi=b1*1/(np.power(K3,n)+np.power(Xi,n))+a1*1/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
+    dXa=b2*1/(np.power(K4,n)+np.power(Xa,n))+a2*1/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
+    return np.array([dXi,dXa])
 #%% Objective function
 def SSE(a,df,f):
     # Timepoints from actual data
@@ -99,7 +99,7 @@ df=pd.read_csv('../input/'+fname+'.csv')
 fname=fname+'-'+f.__name__
 if f.__name__=='XC_DI':
     asize=7
-    cname=np.array([['n','K1','K2','a1','a2','b1','b2']],dtype=str)
+    cname=np.array([['n','K1','K2','a1','a2','c1','c2']],dtype=str)
 else:
     asize=11
     cname=np.array([['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2']],dtype=str)
