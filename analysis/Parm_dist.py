@@ -6,7 +6,7 @@ import seaborn as sns
 plt.rcParams["svg.hashsalt"]=''
 plt.rcParams["font.size"]=22
 # %%
-func='XC_DI_DI'
+func='XC_DI'
 # ts='_timeshifted'
 ts=''
 fname='../output/iPSC'+ts+'-'+func+'-parm.csv'
@@ -14,15 +14,15 @@ idf=pd.read_csv(fname)
 fname='../output/Partial'+ts+'-'+func+'-parm.csv'
 pdf=pd.read_csv(fname)
 # %%
-# idf['Cat']='iPSC'
-# pdf['Cat']='Partial'
-# df=pd.concat([idf,pdf],ignore_index=True)
+idf=idf.melt()
+idf['cat']='iPSC'
+pdf=pdf.melt()
+pdf['cat']='Partial'
+df=pd.concat([idf,pdf],ignore_index=True)
 # %%
 fig=plt.figure(figsize=(20,10))
-sns.boxplot(idf,showfliers = False,color='tab:red')
-sns.boxplot(pdf,showfliers = False,color='tab:green')
+sns.boxplot(data=df,x='variable',y='value',hue='cat',showfliers = False)
 plt.xlabel('Parameters')
 plt.ylabel('Values')
-figname='../figures/'+func+ts+'.svg'
+figname='../figures/'+func+ts+'-parms.svg'
 plt.savefig(figname)
-# %%
