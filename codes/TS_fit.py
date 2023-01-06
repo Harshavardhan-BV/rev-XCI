@@ -3,18 +3,18 @@
 import numpy as np
 import pandas as pd
 from scipy.integrate import solve_ivp
-from scipy.optimize import minimize,fmin
-import matplotlib.pyplot as plt
+from scipy.optimize import differential_evolution
+#%% # Parse arguments
 import argparse
-from multiprocessing import Pool
-plt.rcParams["svg.hashsalt"]=''
-# Parse arguments
 parser = argparse.ArgumentParser()
 parser.add_argument('-f', help='Function to use for fit')
 parser.add_argument('-i', help='Input file')
-parser.add_argument('-n', help='Number of parameter sets',type=int)
+# parser.add_argument('-n', help='Number of parameter sets',type=int)
 parser.add_argument('-t', help='Number of process threads',type=int)
 args = parser.parse_args()
+fname=args.i
+thr=args.t
+func=args.f
 #%% Defining Differential equations
 # Double cross-inhibition
 def XC_DI(t,X,a):
@@ -49,7 +49,7 @@ def SSE(a,df,f):
     # Timepoints from actual data
     t=df['t'].values
     # Actual y values
-    y_a= df.loc[:, df.columns != 't'].values
+    y_a= df.loc[:,['Xi','Xa']].values
     # Initial condition
     y0=y_a[0]
     # Time range to solve for (range of given data)
@@ -64,61 +64,22 @@ def SSE(a,df,f):
     # Return nan if solver error
     else:
         return np.nan
-#%% Solve and Display 
-def plot_fit(df,f,a,fname,savefig=True,savedat=True):
-    t=df['t'].values
-    y_a= df.loc[:, df.columns != 't'].values
-    y0=y_a[0]
-    trang=(t[0],t[-1])
-    tlin=np.linspace(t[0],t[-1])
-    # Solve with given parameters
-    sol=solve_ivp(f,trang,y0,t_eval=tlin,args=(a,))
-    # Plot Actual datapoints
-    plt.scatter(t,y_a[:,0],label='Xi')
-    plt.scatter(t,y_a[:,1],label='Xa')
-    # Plot Fit data
-    plt.plot(sol.t,sol.y[0],label='Xi-fit')
-    plt.plot(sol.t,sol.y[1],label='Xa-fit')
-    plt.legend()
-    plt.xlabel('Time')
-    plt.ylabel('X:A')
-    # Convert to dataframe
-    f_df=pd.DataFrame(np.append([sol.t],sol.y,axis=0).T,columns=['t','Xi','Xa'])
-    # Save outputs
-    if savefig:
-        plt.savefig('../output/'+fname+'.svg')
-    if savedat:
-        f_df.to_csv('../output/'+fname+'-fit.csv')
-    return f_df
-
 #%% Read input data
-fname=args.i
 funcs = {'XC_DI': XC_DI, 'XC_DA_DI': XC_DA_DI, 'XC_DA_DDI': XC_DA_DDI, 'XC_DI_DI': XC_DI_DI}
-f=funcs[args.f]
+f=funcs[func]
 df=pd.read_csv('../input/'+fname+'.csv')
-fname=fname+'-'+f.__name__
+filename=fname+'-'+f.__name__
 if f.__name__=='XC_DI':
     asize=7
-    cname=np.array([['n','K1','K2','a1','a2','c1','c2']],dtype=str)
+    cname=np.array(['n','K1','K2','a1','a2','c1','c2'],dtype=str)
 else:
     asize=11
-    cname=np.array([['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2']],dtype=str)
-filename='../output/'+fname+'-parm.csv'
-np.savetxt(filename,cname,fmt='%s',delimiter=',')
-#%% Initial guess 
-a0s=np.random.randint(0,100,(args.n,asize))
+    cname=np.array(['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2'],dtype=str)
+filename='../output/'+filename+'-parm.csv'
 # %%
-def min_fit(a0):
-    m=fmin(SSE,a0,args=(df,f,))
-    with open(filename, 'a') as fil:
-        np.savetxt(fil,[m],delimiter=',')
-    return m
+bounds=np.full([asize,2],[0,100])
+res=differential_evolution(SSE,bounds,args=(df,f),init='sobol',workers=thr,updating='deferred')
 # %%
-if __name__ == '__main__':
-    pool = Pool(args.t)
-    m_arr=pool.map(min_fit,a0s) 
-    pool.close()
-    pool.join()
+df=pd.DataFrame([res.x],columns=cname)
+df.to_csv(filename,index=False)
 # %%
-#m_arr=pd.DataFrame(m_arr,columns=cname)
-#m_arr.to_csv('../output/'+fname+'-parm.csv',index=False)
