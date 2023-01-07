@@ -20,15 +20,15 @@ func=args.f
 def XC_DI(t,X,a):
     Xi,Xa=X
     n,K1,K2,a1,a2,c1,c2=a
-    dXi=a1*1/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
-    dXa=a2*1/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
+    dXi=a1*np.power(K1,n)/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
+    dXa=a2*np.power(K2,n)/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
     return np.array([dXi,dXa])
 # Double self-activation + cross-inhibition
 def XC_DA_DI(t,X,a):
     Xi,Xa=X
     n,K1,K2,K3,K4,a1,a2,b1,b2,c1,c2=a
-    dXi=b1*np.power(Xi,n)/(np.power(K3,n)+np.power(Xi,n))+a1*1/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
-    dXa=b2*np.power(Xa,n)/(np.power(K4,n)+np.power(Xa,n))+a2*1/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
+    dXi=b1*np.power(Xi,n)/(np.power(K3,n)+np.power(Xi,n))+a1*np.power(K1,n)/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
+    dXa=b2*np.power(Xa,n)/(np.power(K4,n)+np.power(Xa,n))+a2*np.power(K2,n)/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
     return np.array([dXi,dXa])
 # Double self-activation + (-ve) cross-inhibition
 def XC_DA_DDI(t,X,a):
@@ -41,8 +41,8 @@ def XC_DA_DDI(t,X,a):
 def XC_DI_DI(t,X,a):
     Xi,Xa=X
     n,K1,K2,K3,K4,a1,a2,b1,b2,c1,c2=a
-    dXi=b1*1/(np.power(K3,n)+np.power(Xi,n))+a1*1/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
-    dXa=b2*1/(np.power(K4,n)+np.power(Xa,n))+a2*1/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
+    dXi=b1*np.power(K3,n)/(np.power(K3,n)+np.power(Xi,n))+a1*np.power(K1,n)/(np.power(K1,n)+np.power(Xa,n))-c1*Xi
+    dXa=b2*np.power(K4,n)/(np.power(K4,n)+np.power(Xa,n))+a2*np.power(K2,n)/(np.power(K2,n)+np.power(Xi,n))-c2*Xa
     return np.array([dXi,dXa])
 #%% Objective function
 def SSE(a,df,f):
@@ -77,7 +77,7 @@ else:
     cname=np.array(['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2'],dtype=str)
 filename='../output/'+filename+'-parm.csv'
 # %%
-bounds=np.full([asize,2],[0,100])
+bounds=np.full([asize,2],[0,10])
 res=differential_evolution(SSE,bounds,args=(df,f),init='sobol',workers=thr,updating='deferred')
 # %%
 df=pd.DataFrame([res.x],columns=cname)
