@@ -5,7 +5,7 @@ import pandas as pd
 from scipy.integrate import solve_ivp
 from scipy.optimize import differential_evolution
 from TS_fun import XC
-thr=16
+thr=100
 #%% Objective function
 def SSE(a,df,f):
     # Timepoints from actual data
