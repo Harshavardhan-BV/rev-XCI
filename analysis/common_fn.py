@@ -53,9 +53,10 @@ def timeseries(fns,inp,txt):
         plt.plot(sol.t,sol.y[0],c=blu[i],label='Xi-'+f)
         plt.plot(sol.t,sol.y[1],c=orang[i],label='Xa-'+f)
     # Labels
-    plt.legend()
+    plt.legend(bbox_to_anchor=(1,1))
     plt.xlabel('Time (days)')
     plt.ylabel('X:A')
+    plt.tight_layout()
     plt.savefig(figname)
     plt.close(fig)
 
@@ -81,19 +82,23 @@ def SSE(f,inp):
     rsq=r2_score(y_a,y_f)
     return [sse,rsq]
 
-def hmap(fns,axs,inp,txt):
+def hmap(fns,axs,lbl,inp,txt):
     sses=np.empty_like(fns,dtype=float)
     rsqrs=np.empty_like(fns,dtype=float)
     for i in range(fns.shape[0]):
         for j in range(fns.shape[1]):
             sses[i,j],rsqrs[i,j]=SSE(fns[i,j],inp)
     fig=plt.figure()
-    sns.heatmap(sses,xticklabels=axs,yticklabels=axs,cmap='coolwarm_r')
+    s=sns.heatmap(sses,xticklabels=axs,yticklabels=axs,cmap='coolwarm_r',annot=True)
+    s.set(xlabel=lbl[0],ylabel=lbl[1])
+    plt.tight_layout()
     figname='../figures/'+txt+'-'+inp+'-sse-hmap.svg'
     plt.savefig(figname)
     plt.close(fig)
     fig=plt.figure()
-    sns.heatmap(rsqrs,xticklabels=axs,yticklabels=axs,cmap='coolwarm')
+    s=sns.heatmap(rsqrs,xticklabels=axs,yticklabels=axs,cmap='coolwarm',annot=True)
+    s.set(xlabel=lbl[0],ylabel=lbl[1])
+    plt.tight_layout()
     figname='../figures/'+txt+'-'+inp+'-rsq-hmap.svg'
     plt.savefig(figname)
     plt.close(fig)
