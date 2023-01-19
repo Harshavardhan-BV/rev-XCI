@@ -88,14 +88,14 @@ def hmap(fns,axs,lbl,inp,txt):
     for i in range(fns.shape[0]):
         for j in range(fns.shape[1]):
             sses[i,j],rsqrs[i,j]=SSE(fns[i,j],inp)
-    fig=plt.figure()
+    fig=plt.figure(figsize=(12,10))
     s=sns.heatmap(sses,xticklabels=axs,yticklabels=axs,cmap='coolwarm_r',annot=True)
     s.set(xlabel=lbl[0],ylabel=lbl[1])
     plt.tight_layout()
     figname='../figures/'+txt+'-'+inp+'-sse-hmap.svg'
     plt.savefig(figname)
     plt.close(fig)
-    fig=plt.figure()
+    fig=plt.figure(figsize=(12,10))
     s=sns.heatmap(rsqrs,xticklabels=axs,yticklabels=axs,cmap='coolwarm',annot=True)
     s.set(xlabel=lbl[0],ylabel=lbl[1])
     plt.tight_layout()
