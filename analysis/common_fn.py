@@ -102,3 +102,51 @@ def hmap(fns,axs,lbl,inp,txt):
     figname='../figures/'+txt+'-'+inp+'-rsq-hmap.svg'
     plt.savefig(figname)
     plt.close(fig)
+
+def timeseries_topo(f,inp):
+    iname='../input/'+inp+'.csv'
+    idf=pd.read_csv(iname)
+    figname='../figures/'+f+'-'+inp+'-timeseries.svg'
+    # Solver input parameters
+    t=idf['t'].values
+    trang=(t[0],t[-1])
+    teval=np.linspace(t[0],t[-1],100)
+    y_a= idf.loc[:,['Xi','Xa']].values
+    y0=y_a[0]
+    # Plot Actual datapoints
+    fig=plt.figure(figsize=(15,10))
+    plt.scatter(t,y_a[:,0],label='Xi',c='tab:blue')
+    plt.scatter(t,y_a[:,1],label='Xa',c='tab:orange')
+    oname='../output/'+inp+'-'+f+'-parm.csv'
+    odf=pd.read_csv(oname)
+    a=odf.values[0]
+    sol=solve_ivp(XC,trang,y0,t_eval=teval,args=(a,f))
+    plt.plot(sol.t,sol.y[0],c='tab:blue',label='Xi-fit')
+    plt.plot(sol.t,sol.y[1],c='tab:orange',label='Xa-fit')
+    # Labels
+    plt.legend()
+    plt.xlabel('Time (days)')
+    plt.ylabel('X:A')
+    plt.tight_layout()
+    plt.savefig(figname)
+    plt.close(fig)
+
+def parmcomp(f,ts=False):
+    if ts:
+        ts='_timeshifted'
+    else:
+        ts=''
+    figname='../figures/'+f+ts+'-parmcomp.svg'
+    iname='../output/iPSC'+ts+'-'+f+'-parm.csv'
+    idf=pd.read_csv(iname)
+    idf['Data']='iPSC'
+    pname='../output/Partial'+ts+'-'+f+'-parm.csv'
+    pdf=pd.read_csv(pname)
+    pdf['Data']='Partial'
+    fig=plt.figure(figsize=(15,10))
+    df=pd.concat([idf,pdf])
+    df=pd.melt(df,'Data')
+    sns.barplot(df,x='variable',y='value',hue='Data')
+    plt.tight_layout()
+    plt.savefig(figname)
+    plt.close(fig)
