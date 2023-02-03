@@ -6,7 +6,8 @@ import seaborn as sns
 from scipy.integrate import solve_ivp
 from sklearn.metrics import r2_score
 plt.rcParams["svg.hashsalt"]=''
-plt.rcParams["font.size"]=22
+plt.rcParams["font.size"]=40
+# plt.rcParams["text.usetex"] = True
 
 # Defining Differential equations
 def A(X,K,n):
@@ -25,40 +26,6 @@ def XC(t,X,a,f):
     dXi=a1*funs[f[0]](Xa,K1,n)+b1*funs[f[2]](Xi,K3,n)-c1*Xi
     dXa=a2*funs[f[1]](Xi,K2,n)+b2*funs[f[3]](Xa,K4,n)-c2*Xa
     return np.array([dXi,dXa])
-
-# Plot Timeseries
-def timeseries(fns,inp,txt):
-    n=len(fns)
-    blu = plt.cm.Blues(np.linspace(0.2, 1, n))
-    orang = plt.cm.Oranges(np.linspace(0.2, 1, n))
-    iname='../input/'+inp+'.csv'
-    idf=pd.read_csv(iname)
-    figname='../figures/'+txt+'-'+inp+'-timeseries.svg'
-    # Solver input parameters
-    t=idf['t'].values
-    trang=(t[0],t[-1])
-    teval=np.linspace(t[0],t[-1],100)
-    y_a= idf.loc[:,['Xi','Xa']].values
-    y0=y_a[0]
-    # Plot Actual datapoints
-    fig=plt.figure(figsize=(15,10))
-    plt.scatter(t,y_a[:,0],label='Xi',c='tab:blue')
-    plt.scatter(t,y_a[:,1],label='Xa',c='tab:orange')
-    for i in range(n):
-        f=fns[i]
-        oname='../output/'+inp+'-'+f+'-parm.csv'
-        odf=pd.read_csv(oname)
-        a=odf.values[0]
-        sol=solve_ivp(XC,trang,y0,t_eval=teval,args=(a,f))
-        plt.plot(sol.t,sol.y[0],c=blu[i],label='Xi-'+f)
-        plt.plot(sol.t,sol.y[1],c=orang[i],label='Xa-'+f)
-    # Labels
-    plt.legend(bbox_to_anchor=(1,1))
-    plt.xlabel('Time (days)')
-    plt.ylabel('X:A')
-    plt.tight_layout()
-    plt.savefig(figname)
-    plt.close(fig)
 
 # Returns the sum of square error and R-square of the fit
 def SSE(f,inp):
@@ -82,8 +49,8 @@ def SSE(f,inp):
     rsq=r2_score(y_a,y_f)
     return [sse,rsq]
 
-def hmap(fns,axs,lbl,inp,txt):
-    siz=4*len(axs)
+def hmap(fns,axs,lbl,inp,txt,titl=''):
+    siz=4.5*len(axs)
     sses=np.empty_like(fns,dtype=float)
     rsqrs=np.empty_like(fns,dtype=float)
     for i in range(fns.shape[0]):
@@ -92,22 +59,24 @@ def hmap(fns,axs,lbl,inp,txt):
     fig=plt.figure(figsize=(siz+2,siz))
     s=sns.heatmap(sses,xticklabels=axs,yticklabels=axs,cmap='coolwarm_r',annot=True)
     s.set(xlabel=lbl[0],ylabel=lbl[1])
+    plt.title(titl)
     plt.tight_layout()
-    figname='../figures/'+txt+'-'+inp+'-sse-hmap.svg'
+    figname='../writing/draft/figures/'+txt+'-'+inp+'-sse-hmap.pdf'
     plt.savefig(figname)
     plt.close(fig)
     fig=plt.figure(figsize=(siz+2,siz))
     s=sns.heatmap(rsqrs,xticklabels=axs,yticklabels=axs,cmap='coolwarm',annot=True,vmin=0.5,vmax=0.95)
-    s.set(xlabel=lbl[0],ylabel=lbl[1])
+    s.set(xlabel=lbl[0],ylabel=lbl[1],)
+    plt.title(titl)
     plt.tight_layout()
-    figname='../figures/'+txt+'-'+inp+'-rsq-hmap.svg'
+    figname='../writing/draft/figures/'+txt+'-'+inp+'-rsq-hmap.pdf'
     plt.savefig(figname)
     plt.close(fig)
 
-def timeseries_topo(f,inp):
+def timeseries_topo(f,inp,titl=''):
     iname='../input/'+inp+'.csv'
     idf=pd.read_csv(iname)
-    figname='../figures/'+f+'-'+inp+'-timeseries.svg'
+    figname='../writing/draft/figures/'+f+'-'+inp+'-timeseries.pdf'
     # Solver input parameters
     t=idf['t'].values
     trang=(t[0],t[-1])
@@ -116,18 +85,19 @@ def timeseries_topo(f,inp):
     y0=y_a[0]
     # Plot Actual datapoints
     fig=plt.figure(figsize=(15,10))
-    plt.scatter(t,y_a[:,0],label='Xi',c='tab:blue')
-    plt.scatter(t,y_a[:,1],label='Xa',c='tab:orange')
+    plt.scatter(t,y_a[:,0],label='$X_i$',c='tab:blue',s=100)
+    plt.scatter(t,y_a[:,1],label='$X_a$',c='tab:orange',s=100)
     oname='../output/'+inp+'-'+f+'-parm.csv'
     odf=pd.read_csv(oname)
     a=odf.values[0]
     sol=solve_ivp(XC,trang,y0,t_eval=teval,args=(a,f))
-    plt.plot(sol.t,sol.y[0],c='tab:blue',label='Xi-fit')
-    plt.plot(sol.t,sol.y[1],c='tab:orange',label='Xa-fit')
+    plt.plot(sol.t,sol.y[0],c='tab:blue',label='$X_i$-fit',lw=5)
+    plt.plot(sol.t,sol.y[1],c='tab:orange',label='$X_a$-fit',lw=5)
     # Labels
     plt.legend()
     plt.xlabel('Time (days)')
     plt.ylabel('X:A')
+    plt.title(titl)
     plt.tight_layout()
     plt.savefig(figname)
     plt.close(fig)
@@ -137,7 +107,7 @@ def parmcomp(f,ts=False):
         ts='_timeshifted'
     else:
         ts=''
-    figname='../figures/'+f+ts+'-parmcomp.svg'
+    figname='../writing/draft/figures/'+f+ts+'-parmcomp.pdf'
     iname='../output/iPSC'+ts+'-'+f+'-parm.csv'
     idf=pd.read_csv(iname)
     idf['Data']='Full'
@@ -148,6 +118,40 @@ def parmcomp(f,ts=False):
     df=pd.concat([idf,pdf])
     df=pd.melt(df,'Data')
     sns.barplot(df,x='variable',y='value',hue='Data')
+    plt.xlabel('Parameter')
+    plt.ylabel('Value')
     plt.tight_layout()
     plt.savefig(figname)
     plt.close(fig)
+
+timeseries_topo('IIII', 'iPSC_timeshifted','Full: Cross-Inhibition w/ Self-Inhibition')
+timeseries_topo('IIAA', 'iPSC_timeshifted','Full: Cross-Inhibition w/ Self-Activation')
+timeseries_topo('IINN', 'iPSC_timeshifted','Full: Cross-Inhibition')
+timeseries_topo('IIII', 'Partial_timeshifted', 'Partial: Cross-Inhibition w/ Self-Inhibition')
+
+axs=['A','I']
+lbl=['Incoming connection to $X_a$','Incoming connection to $X_i$']
+combi2d=np.array([['AAAA','AIAA'],['IAAA','IIAA']])
+hmap(combi2d,axs,lbl,'iPSC_timeshifted','vary_cross-AA',titl='Full: Self-Activation')
+hmap(combi2d,axs,lbl,'Partial_timeshifted','vary_cross-AA',titl='Partial: Self-Activation')
+
+combi2d=np.array([['AAII','AIII'],['IAII','IIII']])
+hmap(combi2d,axs,lbl,'iPSC_timeshifted','vary_cross-II',titl='Full: Self-Inhibition')
+hmap(combi2d,axs,lbl,'Partial_timeshifted','vary_cross-II',titl='Partial: Self-Inhibition')
+
+lbl=['Self-connection of $X_a$','Self-connection of $X_i$']
+combi2d=np.array([['IIAA','IIAI','IIAN'],['IIIA','IIII','IIIN'],['IINA','IINI','IINN']])
+axs=['A','I','N']
+hmap(combi2d,axs,lbl,'iPSC_timeshifted','vary_self',titl='Full: Cross-Inhibition')
+hmap(combi2d,axs,lbl,'Partial_timeshifted','vary_self',titl='Partial: Cross-Inhibition')
+parmcomp('IIII',ts=True)
+
+from itertools import product
+combi=np.array(tuple(product(axs,repeat=4)))
+combi=np.apply_along_axis(''.join,1,combi)
+combi2d=np.reshape(combi,(9,9))
+axs=np.array(tuple(product(axs,repeat=2)))
+axs=np.apply_along_axis(''.join,1,axs)
+lbl=['Self','Cross']
+hmap(combi2d,axs,lbl,'iPSC_timeshifted','vary_all')
+hmap(combi2d,axs,lbl,'Partial_timeshifted','vary_all')
