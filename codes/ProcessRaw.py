@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 # %% Read the raw data
 df=pd.read_excel('../input/iPSC_RawData.xlsx')
+# %% Remove Xi cells
+df=df[df.Status!='Xi']
 # %% Pivot table by ID such that column is 129S1, CAST
 w_df=df.pivot_table(index=['ID','Timepoint'],columns=['Allele'],values='Allelic X to A ratio')
 # %% Remove ID from index, only Timepoint is index

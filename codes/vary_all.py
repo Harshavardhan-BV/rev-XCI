@@ -3,7 +3,7 @@ from TS_fit import de_fit
 import numpy as np
 from itertools import product
 
-filenames=['iPSC','iPSC_timeshifted','Partial','Partial_timeshifted']
+filenames=['iPSC_timeshifted','Partial_timeshifted']
 x=['A','I','N']
 combi=np.array(tuple(product(x,repeat=4)))
 combi=np.apply_along_axis(''.join,1,combi)
