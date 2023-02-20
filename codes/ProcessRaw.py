@@ -4,7 +4,10 @@ import numpy as np
 # %% Read the raw data
 df=pd.read_excel('../input/iPSC_RawData.xlsx')
 # %% Remove Xi cells
-df=df[df.Status!='Xi']
+df0=df[df.Timepoint=='Day_0']
+df1=df[df.Status!='Xi']
+# %%
+df = pd.concat((df0,df1))
 # %% Pivot table by ID such that column is 129S1, CAST
 w_df=df.pivot_table(index=['ID','Timepoint'],columns=['Allele'],values='Allelic X to A ratio')
 # %% Remove ID from index, only Timepoint is index
@@ -24,3 +27,4 @@ Xa=np.interp(t,w_df['Timepoint'],w_df['CAST'])
 n_df=pd.DataFrame({'t':t,'Xi':Xi,'Xa':Xa})
 # %% Save to csv
 n_df.to_csv('../input/iPSC.csv',index=False)
+# %%
