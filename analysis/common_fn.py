@@ -151,3 +151,34 @@ def parmcomp(f,ts=False):
     plt.tight_layout()
     plt.savefig(figname)
     plt.close(fig)
+
+def timeseries_noise_scatter(f,inp):
+    fname='../output/'+inp+'-'+f+'-noise.csv'
+    figname='../figures/'+f+'-'+inp+'-noise-scatter.svg'
+    df=pd.read_csv(fname)
+    fig, ax = plt.subplots(1,2,figsize=(30,10),sharey=True)
+    l1 = ax[0].scatter(df['t'],df['Xi'],c='tab:blue')
+    l2 = ax[1].scatter(df['t'],df['Xa'],c='tab:orange')
+    ax[0].set_ylabel('X:A')
+    ax[0].set_xlabel('Time')
+    ax[1].set_xlabel('Time')
+    plt.legend([l1, l2],["Xi", "Xa"],bbox_to_anchor=(1, 1), loc="upper left")
+    plt.tight_layout()
+    plt.savefig(figname)
+    plt.close(fig)
+
+def timeseries_noise_violin(f,inp):
+    fname='../output/'+inp+'-'+f+'-noise.csv'
+    figname='../figures/'+f+'-'+inp+'-noise-violin.svg'
+    df=pd.read_csv(fname)
+    fig, ax = plt.subplots(1,2,figsize=(30,10),sharey=True)
+    l1 = sns.violinplot(df,x='t',y='Xi',color='tab:blue',scale='width',ax=ax[0])
+    l2 = sns.violinplot(df,x='t',y='Xa',color='tab:orange',scale='width',ax=ax[1])
+    ax[0].set_ylabel('X:A')
+    ax[0].set_xlabel('Time')
+    ax[1].set_ylabel('')
+    ax[1].set_xlabel('Time')
+    # plt.legend([l1, l2],["Xi", "Xa"],bbox_to_anchor=(1, 1), loc="upper left")
+    plt.tight_layout()
+    plt.savefig(figname)
+    plt.close(fig)
