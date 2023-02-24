@@ -176,6 +176,7 @@ def timeseries_noise_violin(f,inp):
     l2 = sns.violinplot(df,x='t',y='Xa',color='tab:orange',scale='width',ax=ax[1])
     ax[0].set_ylabel('X:A')
     ax[0].set_xlabel('Time')
+    ax[1].set_ylabel('')
     ax[1].set_xlabel('Time')
     # plt.legend([l1, l2],["Xi", "Xa"],bbox_to_anchor=(1, 1), loc="upper left")
     plt.tight_layout()

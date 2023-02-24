@@ -124,10 +124,29 @@ def parmcomp(f,ts=False):
     plt.savefig(figname)
     plt.close(fig)
 
+
+def timeseries_noise_violin(f,inp):
+    fname='../output/'+inp+'-'+f+'-noise.csv'
+    figname='../writing/draft/figures/'+f+'-'+inp+'-noise-violin.pdf'
+    df=pd.read_csv(fname)
+    df = df.astype({"t": int})
+    fig, ax = plt.subplots(1,2,figsize=(30,10),sharey=True)
+    l1 = sns.violinplot(df,x='t',y='Xi',color='tab:blue',scale='width',ax=ax[0])
+    l2 = sns.violinplot(df,x='t',y='Xa',color='tab:orange',scale='width',ax=ax[1])
+    ax[0].set_ylabel('X:A')
+    ax[0].set_xlabel('Time (days)')
+    ax[1].set_ylabel('')
+    ax[1].set_xlabel('Time (days)')
+    plt.tight_layout()
+    plt.savefig(figname)
+    plt.close(fig)
+
 timeseries_topo('IIII', 'iPSC_timeshifted','Full: Cross-Inhibition w/ Self-Inhibition')
 timeseries_topo('IIAA', 'iPSC_timeshifted','Full: Cross-Inhibition w/ Self-Activation')
 timeseries_topo('IINN', 'iPSC_timeshifted','Full: Cross-Inhibition')
 timeseries_topo('IIII', 'Partial_timeshifted', 'Partial: Cross-Inhibition w/ Self-Inhibition')
+
+timeseries_noise_violin('IIII', 'iPSC_timeshifted')
 
 axs=['A','I']
 lbl=['Incoming connection to $X_a$','Incoming connection to $X_i$']
