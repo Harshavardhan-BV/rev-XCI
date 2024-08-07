@@ -1,11 +1,24 @@
 #!/usr/bin/env python
 #%%
+import os
 import numpy as np
 import pandas as pd
 from scipy.integrate import solve_ivp
 from scipy.optimize import differential_evolution
 from TS_fun import XC
-thr=100
+import resource
+
+# Set resource allocation
+thr=os.cpu_count()-2
+
+# Set the maximum number of open file descriptors
+soft_nofile, hard_nofile = 999999, 999999
+resource.setrlimit(resource.RLIMIT_NOFILE, (soft_nofile, hard_nofile))
+
+# Set the maximum file size limit to unlimited
+soft_fsize, hard_fsize = resource.RLIM_INFINITY, resource.RLIM_INFINITY
+resource.setrlimit(resource.RLIMIT_FSIZE, (soft_fsize, hard_fsize))
+
 #%% Objective function
 def SSE(a,df,f):
     # Timepoints from actual data
@@ -31,10 +44,10 @@ def de_fit(f,fname):
     #%% Read input data
     df=pd.read_csv('../input/'+fname+'.csv')
     filename=fname+'-'+f
-    cname=np.array(['n','K1','K2','K3','K4','a1','a2','b1','b2','c1','c2'],dtype=str)
+    cname=np.array(['n','K1','K2','K3','K4','g1','g2','k1','k2'],dtype=str)
     filename='../output/'+filename+'-parm.csv'
     # %%
-    bounds=np.full([11,2],[0,10])
+    bounds=np.full([9,2],[0,10])
     res=differential_evolution(SSE,bounds,args=(df,f),init='sobol',workers=thr,updating='deferred')
     # %%
     df=pd.DataFrame([res.x],columns=cname)

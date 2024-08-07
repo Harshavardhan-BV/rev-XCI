@@ -1,24 +1,42 @@
 #%%
 import pandas as pd
 import numpy as np
+#%%
+def process_data(Name):
+    df = pd.read_excel('../input/'+Name+'_RawData.xlsx')
+    df = df.pivot_table(index=['Cell ID','Timepoint'], columns=['allele'], values='Allelic X to A ratio')
+    df = df.reset_index(level=0, drop=True)
+    df = df.groupby(df.index).mean().reset_index()
+    df['Timepoint'] = df['Timepoint'].str.replace('Day_', '')
+    df.loc[df.Timepoint == 'iPSCs', 'Timepoint'] = 13
+    df = df.astype({"Timepoint": int}).sort_values(by='Timepoint', ignore_index=True)
+    df = df.rename(columns={'129S1': 'Xi', 'CAST': 'Xa'})
+    return df
+#%%
+def partial_reactivation(w_df):
+    wp_df = w_df.copy()
+    last_t = wp_df.iloc[-1,0]
+    wp_df.iloc[-1,:] = wp_df.iloc[-2,:]
+    wp_df.iloc[-1,0] = last_t
+    return wp_df
+#%%
+def interpol(df, tmin, tmax, ts=None):
+    df = df.copy()
+    if ts:
+        df.iloc[0,0] = ts
+    t=np.arange(tmin,tmax,1)
+    Xi=np.interp(t,df['Timepoint'],df['Xi'])
+    Xa=np.interp(t,df['Timepoint'],df['Xa'])
+    df=pd.DataFrame({'t':t,'Xi':Xi,'Xa':Xa})
+    return df
 # %% Read the raw data
-df=pd.read_excel('../input/iPSC_RawData.xlsx')
-# %% Pivot table by ID such that column is 129S1, CAST
-w_df=df.pivot_table(index=['ID','Timepoint'],columns=['Allele'],values='Allelic X to A ratio')
-# %% Remove ID from index, only Timepoint is index
-w_df=w_df.reset_index(level=0,drop=True)
-# %% Groupby timepoint and take mean values
-w_df=w_df.groupby(w_df.index).mean()
-# %% Remove Timepoint from index and convert to numerical values
-w_df=w_df.reset_index()
-w_df['Timepoint']=w_df['Timepoint'].str.replace('Day_','')
-w_df.loc[w_df.Timepoint=='iPSCs','Timepoint']=13
-w_df=w_df.astype({"Timepoint": int})
-w_df.sort_values(by='Timepoint',ignore_index=True,inplace=True)
-# %% Interpolate missing values into new dataframe
-t=np.arange(0,20,1)
-Xi=np.interp(t,w_df['Timepoint'],w_df['129S1'])
-Xa=np.interp(t,w_df['Timepoint'],w_df['CAST'])
-n_df=pd.DataFrame({'t':t,'Xi':Xi,'Xa':Xa})
-# %% Save to csv
-n_df.to_csv('../input/iPSC.csv',index=False)
+ipsc = process_data('iPSC')
+interpol(ipsc, 0, 20).to_csv('../input/iPSC.csv',index=False)
+# %% Timeshifted data
+interpol(ipsc, 7, 16, ts=7).to_csv('../input/iPSC_timeshifted.csv',index=False)
+# %% Partial reactivation data
+partial = partial_reactivation(ipsc)
+interpol(partial, 0, 20).to_csv('../input/Partial.csv',index=False)
+# %% Partial timeshifted data
+interpol(partial, 7, 16, ts=7).to_csv('../input/Partial_timeshifted.csv',index=False)
+# %%

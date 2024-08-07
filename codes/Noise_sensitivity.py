@@ -1,4 +1,5 @@
 # %%
+import os
 import numpy as np
 import pandas as pd
 from TS_fun import XC_noise
@@ -19,7 +20,7 @@ def noise_solver_multi(fname,f,n):
     df = pd.read_csv(iname)
     t=df.t.values
     y_0= df.loc[0,['Xi','Xa']].values
-    with Pool() as p:
+    with Pool(processes=os.cpu_count()-2) as p:
         sol = p.starmap(noise_solve,zip(repeat(y_0,n), repeat(t), repeat(fname),repeat(f)))
     solarr=np.array(sol).reshape(-1,2)
     solt=np.repeat(t.reshape(1,-1),n,axis=0).reshape(-1,1)
@@ -27,7 +28,7 @@ def noise_solver_multi(fname,f,n):
     oname = '../output/'+fname+'-'+f+'-noise.csv'
     df.to_csv(oname,index=False)
 # %%
-f = 'IIII'
+f = 'IIAA'
 fname='iPSC_timeshifted'
 n=1000
 
